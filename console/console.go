@@ -49,6 +49,23 @@ const HistoryFile = "history"
 
 // DefaultPrompt is the default prompt line prefix to use for user input querying.
 const DefaultPrompt = "AQUA> "
+const helpText = `
+Explorer: http://explorer.aquanetwork.co
+Github: http://github.com/aquanetwork/aquachain
+Chat: https://t.me/AquaCrypto
+
+Common commands:
+New address:     personal.newAccount()
+List accounts:   aqua.accounts
+Set aquabase:    miner.setAquabase(aqua.accounts[0])
+Start mining:    miner.start()
+Get balance:     aqua.balance(aqua.coinbase)
+Unlock accounts: personal.unlockAccount(aqua.accounts[0])
+Send Tx:         aqua.sendTransaction({from: aqua.accounts[0], to: '0x3317e8405e75551ec7eeeb3508650e7b349665ff', value:web3.toWei(1.111,"aqua")});
+Check peers:     net.peerCount
+
+Press TAB to autocomplete commands
+`
 
 // Config is the collection of configurations to fine tune the behavior of the
 // JavaScript console.
@@ -372,20 +389,7 @@ func (c *Console) Interactive() {
 			}
 
 			if help.MatchString(line) {
-				fmt.Println("wot")
-				c.printer.Write([]byte(`
-    Explorer: http://explorer.aquanetwork.co
-    Github: http://github.com/aquanetwork/aquachain
-    Chat: https://t.me/AquaCrypto
-
-    Common commands:
-	New address:   personal.newAccount()
-	Start mining:  miner.start()
-	Get balance:   aqua.Balance(aqua.coinbase)
-	List accounts: aqua.accounts
-
-    Press TAB to autocomplete commands
-` +
+				c.printer.Write([]byte(helpText +
 					"\n"))
 				continue
 			}
