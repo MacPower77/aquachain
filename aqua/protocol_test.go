@@ -126,8 +126,8 @@ func testRecvTransactions(t *testing.T, protocol int) {
 }
 
 // This test checks that pending transactions are sent.
-func TestSendTransactions62(t *testing.T) { testSendTransactions(t, 62) }
-func TestSendTransactions63(t *testing.T) { testSendTransactions(t, 63) }
+func TestSendTransactions64(t *testing.T) { testSendTransactions(t, 65) }
+func TestSendTransactions65(t *testing.T) { testSendTransactions(t, 65) }
 
 func testSendTransactions(t *testing.T, protocol int) {
 

@@ -451,6 +451,7 @@ func testGetReceipt(t *testing.T, protocol int) {
 
 // Tests that post aqua protocol handshake NextHF
 func TestNextHF(t *testing.T) {
+	t.Skip()
 	var (
 		evmux  = new(event.TypeMux)
 		pow    = aquahash.NewFaker()
