@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with aquachain. If not, see <http://www.gnu.org/licenses/>.
 
-// This is a simple Whisper node. It could be used as a stand-alone bootstrap node.
-// Also, could be used for different test and diagnostics purposes.
-
+// webwallet command launches local MyAquaWallet in browser
 package main
 
 import (
