@@ -28,6 +28,7 @@ import (
 	"github.com/aquanetwork/aquachain/event"
 	"github.com/aquanetwork/aquachain/p2p/discover"
 	"github.com/aquanetwork/aquachain/rlp"
+	"github.com/labstack/gommon/log"
 )
 
 // Msg defines the structure of a p2p message.
@@ -92,6 +93,7 @@ type MsgReadWriter interface {
 func Send(w MsgWriter, msgcode uint64, data interface{}) error {
 	size, r, err := rlp.EncodeToReader(data)
 	if err != nil {
+		log.Warn("encoding error")
 		return err
 	}
 	return w.WriteMsg(Msg{Code: msgcode, Size: uint32(size), Payload: r})
@@ -291,6 +293,7 @@ func (self *msgEventer) ReadMsg() (Msg, error) {
 func (self *msgEventer) WriteMsg(msg Msg) error {
 	err := self.MsgReadWriter.WriteMsg(msg)
 	if err != nil {
+		log.Warn("write msg enc error")
 		return err
 	}
 	self.feed.Send(&PeerEvent{

@@ -339,7 +339,10 @@ func (bc *BlockChain) GasLimit() uint64 {
 // CurrentBlock retrieves the current head block of the canonical chain. The
 // block is retrieved from the blockchain's internal cache.
 func (bc *BlockChain) CurrentBlock() *types.Block {
-	return bc.currentBlock.Load().(*types.Block)
+	if b := bc.currentBlock.Load(); b != nil {
+		return b.(*types.Block)
+	}
+	return nil
 }
 
 // CurrentFastBlock retrieves the current fast-sync head block of the canonical
@@ -1157,7 +1160,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 		}
 		switch status {
 		case CanonStatTy:
-			log.Debug("Inserted new block", "number", block.Number(), "hash", block.Hash(), "uncles", len(block.Uncles()),
+			log.Debug("Inserted new block", "number", block.Number(), "hash", block.Hash(), "miner", block.Coinbase().Hex(), "uncles", len(block.Uncles()),
 				"txs", len(block.Transactions()), "gas", block.GasUsed(), "elapsed", common.PrettyDuration(time.Since(bstart)))
 
 			coalescedLogs = append(coalescedLogs, logs...)

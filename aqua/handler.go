@@ -285,13 +285,13 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	pm.syncTransactions(p)
 
 	// send NextHF
-	if p.version >= aqua64 {
-		nexthf := pm.chainconfig.NextHF(pm.blockchain.CurrentHeader().Number)
-		p.Log().Debug("Sending NextHF " + nexthf.String() + " to " + p.Name())
-		if err := p.SendNextHF(nexthf); err != nil {
-			p.Log().Info("Sending next HF failed", "err", err)
-		}
-	}
+	// if p.version >= aqua64 {
+	// 	nexthf := pm.chainconfig.NextHF(pm.blockchain.CurrentHeader().Number)
+	// 	p.Log().Debug("Sending NextHF " + nexthf.String() + " to " + p.Name())
+	// 	if err := p.SendNextHF(nexthf); err != nil {
+	// 		p.Log().Info("Sending next HF failed", "err", err)
+	// 	}
+	// }
 	// main loop. handle incoming messages.
 	for {
 		if err := pm.handleMsg(p); err != nil {
@@ -337,6 +337,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		)
 		for !unknown && len(headers) < int(query.Amount) && bytes < softResponseLimit && len(headers) < downloader.MaxHeaderFetch {
 			// Retrieve the next header satisfying the query
+			log.Info("Sending blockchain headers")
 			var origin *types.Header
 			if hashMode {
 				origin = pm.blockchain.GetHeaderByHash(query.Origin.Hash)
@@ -406,24 +407,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
 		// If no headers were received, but we're expending a DAO fork check, maybe it's that
-		if len(headers) == 0 && p.forkDrop != nil {
-			// Possibly an empty reply to the fork header checks, sanity check TDs
-			verifyHF := true
-
-			// If we already have a DAO header, we can check the peer's TD against it. If
-			// the peer's ahead of this, it too must have a reply to the DAO check
-			if hfHeader := pm.blockchain.GetHeaderByNumber(pm.chainconfig.HF[0].Uint64()); hfHeader != nil {
-				if _, td := p.Head(); td.Cmp(pm.blockchain.GetTd(hfHeader.Hash(), hfHeader.Number.Uint64())) >= 0 {
-					verifyHF = false
-				}
-			}
-			// If we're seemingly on the same chain, disable the drop timer
-			if verifyHF {
-				p.Log().Debug("Peer seems to be HF1 Compatible, for now...")
-				p.forkDrop.Stop()
-				p.forkDrop = nil
-				return nil
-			}
+		if len(headers) == 0 {
+			log.Debug("blockheaders msg: no headers")
+			return nil
 		}
 		// Filter out any explicitly requested headers, deliver the rest to the downloader
 		filter := len(headers) == 1
@@ -661,29 +647,30 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		pm.txpool.AddRemotes(txs)
 	case p.version >= aqua64 && msg.Code == NextHFMsg:
-		var latesthf = new(big.Int)
-		if err := msg.Decode(latesthf); err != nil {
-			return errResp(ErrDecode, "nexthf err %v: %v", msg, err)
-		}
-		log.Debug(fmt.Sprintf("Got NextHF %s from %s", latesthf, p.String()))
-		p.nexthf = latesthf
-		if latesthf == nil || latesthf.Cmp(new(big.Int)) == 0 {
-			return nil
-		}
-		nextf := pm.chainconfig.NextHF(pm.blockchain.CurrentHeader().Number)
-		if nextf == nil {
-			fmt.Printf("\n\n"+
-				"######################\n"+
-				"Discovered New HF. Please consider upgrading.\nPreviously known HF: none\nNew discovered HF: %s\n"+
-				"######################\n", latesthf)
-			return nil
-		}
-		if cmp := latesthf.Cmp(nextf); cmp < 0 {
-			fmt.Printf("\n\n"+
-				"######################\n"+
-				"Discovered New HF. Please consider upgrading.\nPreviously known HF: %s\nNew discovered HF: %s\n"+
-				"######################\n", nextf, latesthf)
-		}
+		return nil
+		// var latesthf = new(big.Int)
+		// if err := msg.Decode(latesthf); err != nil {
+		// 	return errResp(ErrDecode, "nexthf err %v: %v", msg, err)
+		// }
+		// log.Debug(fmt.Sprintf("Got NextHF %s from %s", latesthf, p.String()))
+		// p.nexthf = latesthf
+		// if latesthf == nil || latesthf.Cmp(new(big.Int)) == 0 {
+		// 	return nil
+		// }
+		// nextf := pm.chainconfig.NextHF(pm.blockchain.CurrentHeader().Number)
+		// if nextf == nil {
+		// 	fmt.Printf("\n\n"+
+		// 		"######################\n"+
+		// 		"Discovered New HF. Please consider upgrading.\nPreviously known HF: none\nNew discovered HF: %s\n"+
+		// 		"######################\n", latesthf)
+		// 	return nil
+		// }
+		// if cmp := latesthf.Cmp(nextf); cmp < 0 {
+		// 	fmt.Printf("\n\n"+
+		// 		"######################\n"+
+		// 		"Discovered New HF. Please consider upgrading.\nPreviously known HF: %s\nNew discovered HF: %s\n"+
+		// 		"######################\n", nextf, latesthf)
+		// }
 	default:
 		return errResp(ErrInvalidMsgCode, "%v", msg.Code)
 	}

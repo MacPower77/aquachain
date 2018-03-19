@@ -26,7 +26,6 @@ import (
 	"github.com/aquanetwork/aquachain/aquadb"
 	"github.com/aquanetwork/aquachain/common"
 	"github.com/aquanetwork/aquachain/consensus"
-	"github.com/aquanetwork/aquachain/consensus/misc"
 	"github.com/aquanetwork/aquachain/core"
 	"github.com/aquanetwork/aquachain/core/state"
 	"github.com/aquanetwork/aquachain/core/types"
@@ -444,9 +443,9 @@ func (self *worker) commitNewWork() {
 	}
 	// Create the current work task and check any fork transitions needed
 	work := self.current
-	if nexthf := self.config.NextHF(big.NewInt(0).Add(header.Number, big.NewInt(-1))); nexthf != nil && nexthf.Cmp(header.Number) == 0 {
-		misc.ApplyHardFork(work.state)
-	}
+	// if nexthf := self.config.NextHF(big.NewInt(0).Add(header.Number, big.NewInt(-1))); nexthf != nil && nexthf.Cmp(header.Number) == 0 {
+	// 	misc.ApplyHardFork(work.state)
+	// }
 	pending, err := self.aqua.TxPool().Pending()
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
@@ -467,18 +466,15 @@ func (self *worker) commitNewWork() {
 		if err := self.commitUncle(work, uncle.Header()); err != nil {
 			log.Trace("Bad uncle found and will be removed", "hash", hash)
 			log.Trace(fmt.Sprint(uncle))
-
 			badUncles = append(badUncles, hash)
-		}
-		if uncle.Transactions().Len() == 0 {
+		} else if uncle.Transactions().Len() == 0 {
 			log.Trace("Empty uncle found and will be removed", "hash", hash)
 			log.Trace(fmt.Sprint(uncle))
-
 			badUncles = append(badUncles, hash)
+		} else {
+			log.Debug("Committing new uncle to block", "hash", hash)
+			uncles = append(uncles, uncle.Header())
 		}
-
-		log.Debug("Committing new uncle to block", "hash", hash)
-		uncles = append(uncles, uncle.Header())
 
 	}
 	for _, hash := range badUncles {
