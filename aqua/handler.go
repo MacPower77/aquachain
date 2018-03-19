@@ -409,7 +409,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		// If no headers were received, but we're expending a DAO fork check, maybe it's that
 		if len(headers) == 0 {
 			log.Debug("blockheaders msg: no headers")
-			return nil
 		}
 		// Filter out any explicitly requested headers, deliver the rest to the downloader
 		filter := len(headers) == 1
