@@ -100,7 +100,6 @@ func TestKeyStorePassphraseDecryptionFail(t *testing.T) {
 	}
 }
 
-
 // Test and utils for the key store tests in the AquaChain JSON tests;
 // testdataKeyStoreTests/basic_tests.json
 type KeyStoreTestV3 struct {
